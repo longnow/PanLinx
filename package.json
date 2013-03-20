@@ -10,7 +10,6 @@
     "jade": "0.28.x",
     "pg": "0.14.x",
     "any-db": "0.4.x",
-    "entities": "*",
     "sprintf": "*"
   }
 }
