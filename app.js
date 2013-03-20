@@ -27,7 +27,7 @@ app.configure('development', function(){
 
 app.locals({
   title: 'PanLinx',
-  base: '/panlinx',
+  base: config.base,
   robot: true,
   lcvcUid: function(obj) {
     return sprintf('%s-%03d', obj.lc, obj.vc);
@@ -56,6 +56,8 @@ function index(req, res, next) {
 }
 
 function lv0(req, res, next) {
+  if (!req.params.gp.match(/^\d+/)) return next();
+  
   db.query('select id, tdbeg, tdend from td where gp = $1 order by id', [req.params.gp],
   function (err, subr) {
     res.render('lv0', { subr: getRows(subr) });
@@ -63,6 +65,8 @@ function lv0(req, res, next) {
 }
 
 function lv1(req, res, next) {
+  if (!req.params.id.match(/^\d+/)) return next();
+
   db.query('select tdbeg, tdend from td where id = $1', [req.params.id],
   function (err, tuple) {
     tuple = getRows(tuple)[0];
@@ -76,6 +80,8 @@ function lv1(req, res, next) {
 }
 
 function lv2(req, res, next) {
+  if (!req.params.ex.match(/^\d+/)) return next();
+
   db.query('select lc, vc, lvextt, extt from exx ($1)', [req.params.ex],
   function (err, exx) {
     exx = getRows(exx)[0];
