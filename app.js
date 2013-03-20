@@ -3,7 +3,8 @@ var express = require('express'),
     path = require('path'),
     sprintf = require('sprintf').sprintf,
     entities = require('entities'),
-    db = require('./db');
+    db = require('./db'),
+    config = require('./config');
 
 var app = express();
 
