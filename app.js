@@ -56,7 +56,7 @@ function index(req, res, next) {
 }
 
 function lv0(req, res, next) {
-  if (!req.params.gp.match(/^\d+/)) return next();
+  if (!req.params.gp.match(/^\d+$/)) return next();
   
   db.query('select id, tdbeg, tdend from td where gp = $1 order by id', [req.params.gp],
   function (err, subr) {
@@ -65,7 +65,7 @@ function lv0(req, res, next) {
 }
 
 function lv1(req, res, next) {
-  if (!req.params.id.match(/^\d+/)) return next();
+  if (!req.params.id.match(/^\d+$/)) return next();
 
   db.query('select tdbeg, tdend from td where id = $1', [req.params.id],
   function (err, tuple) {
@@ -80,7 +80,7 @@ function lv1(req, res, next) {
 }
 
 function lv2(req, res, next) {
-  if (!req.params.ex.match(/^\d+/)) return next();
+  if (!req.params.ex.match(/^\d+$/)) return next();
 
   db.query('select lc, vc, lvextt, extt from exx ($1)', [req.params.ex],
   function (err, exx) {
