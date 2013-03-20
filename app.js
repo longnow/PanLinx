@@ -49,32 +49,32 @@ function setHeaders(req, res, next) {
 }
 
 function index(req, res, next) {
-  db.query('select gp, tdbeg, tdend from tdg order by gp',
+  db.sql('select gp, tdbeg, tdend from tdg order by gp',
   function (err, gpr) {
-    res.render('index', { gpr: getRows(gpr) });
+    res.render('index', { gpr: gpr });
   });
 }
 
 function lv0(req, res, next) {
   if (!req.params.gp.match(/^\d+$/)) return next();
   
-  db.query('select id, tdbeg, tdend from td where gp = $1 order by id', [req.params.gp],
+  db.sql('select id, tdbeg, tdend from td where gp = $1 order by id', [req.params.gp],
   function (err, subr) {
-    res.render('lv0', { subr: getRows(subr) });
+    res.render('lv0', { subr: subr });
   });
 }
 
 function lv1(req, res, next) {
   if (!req.params.id.match(/^\d+$/)) return next();
 
-  db.query('select tdbeg, tdend from td where id = $1', [req.params.id],
+  db.sql('select tdbeg, tdend from td where id = $1', [req.params.id],
   function (err, tuple) {
-    tuple = getRows(tuple)[0];
-    db.query('select ex1.ex ex1ex, lc, vc, ex2.tt ex2tt, ex1.tt ex1tt from ex as ex1, ex as ex2, lv ' +
+    tuple = tuple[0];
+    db.sql('select ex1.ex ex1ex, lc, vc, ex2.tt ex2tt, ex1.tt ex1tt from ex as ex1, ex as ex2, lv ' +
       'where ex1.td between $1 and $2 and lv.lv = ex1.lv ' +
       'and ex2.ex = lv.ex order by ex1.tt, lc, vc', [tuple.tdbeg, tuple.tdend],
     function (err, exxr) {
-      res.render('lv1', { exxr: getRows(exxr) });
+      res.render('lv1', { exxr: exxr });
     });
   });
 }
@@ -82,22 +82,17 @@ function lv1(req, res, next) {
 function lv2(req, res, next) {
   if (!req.params.ex.match(/^\d+$/)) return next();
 
-  db.query('select lc, vc, lvextt, extt from exx ($1)', [req.params.ex],
+  db.sql('select lc, vc, lvextt, extt from exx ($1)', [req.params.ex],
   function (err, exx) {
-    exx = getRows(exx)[0];
-    db.query('select ex, lc, vc, lvextt, extt from trsx ($1)', [req.params.ex],
+    exx = exx[0];
+    db.sql('select ex, lc, vc, lvextt, extt from trsx ($1)', [req.params.ex],
     function (err, trxr) {
       res.render('lv2', {
         title: 'PanLinx: ' + exx.extt,
         exx: exx,
-        trxr: getRows(trxr),
+        trxr: trxr,
         robot: false
       });
     });
   });
-}
-
-function getRows(result) {
-  if (result && result.rows) return result.rows;
-  else return [];
 }
