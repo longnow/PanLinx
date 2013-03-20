@@ -1,0 +1,10 @@
+extends layout
+
+block content
+  table
+    for exx in exxr
+      tr
+        td.r= exx.ex2tt
+        td.lcvcl= lcvcUid(exx)
+        td
+          a(href=base + '/2/' + exx.ex1ex)= exx.ex1tt

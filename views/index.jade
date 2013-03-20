@@ -1,0 +1,10 @@
+extends layout
+
+block content
+  table
+    for gp in gpr
+      tr
+        td.r= gp.tdbeg
+        td.xl
+          a(href=base + '/0/' + gp.gp) …
+        td= gp.tdend

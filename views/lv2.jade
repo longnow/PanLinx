@@ -1,0 +1,15 @@
+extends layout
+
+block content
+  table.box
+    tr
+      td.r= exx.lvextt
+      td.lcvcl= lcvcUid(exx)
+
+  table
+    for trx in trxr
+      tr
+        td.r= trx.lvextt
+        td.lcvcl= lcvcUid(trx)
+        td
+          a(href=base + '/2/' + trx.ex)= trx.extt
