@@ -2,13 +2,12 @@ var express = require('express'),
     http = require('http'),
     path = require('path'),
     sprintf = require('sprintf').sprintf,
-    db = require('./db'),
-    config = require('./config');
+    db = require('./db');
 
 var app = express();
 
 app.configure(function(){
-  app.set('port', config.port || 3000);
+  app.set('port', process.argv[2] || 3000);
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
   
