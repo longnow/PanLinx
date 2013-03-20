@@ -2,7 +2,6 @@ var express = require('express'),
     http = require('http'),
     path = require('path'),
     sprintf = require('sprintf').sprintf,
-    entities = require('entities'),
     db = require('./db'),
     config = require('./config');
 
