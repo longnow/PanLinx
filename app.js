@@ -3,6 +3,7 @@ var express = require('express'),
     path = require('path'),
     sprintf = require('sprintf').sprintf,
     db = require('./db'),
+    nodes = require('gesundheit').nodes,
     config = require('./config');
 
 var app = express();
@@ -80,12 +81,16 @@ function lv1(req, res, next) {
 
     tuple = tuple[0];
     
-    q = db.select({ex1: 'ex'}, [])
-      .table()
-    db.sql('select ex1.ex ex1ex, lc, vc, ex2.tt ex2tt, ex1.tt ex1tt from ex as ex1, ex as ex2, lv ' +
-      'where ex1.td between $1 and $2 and lv.lv = ex1.lv ' +
-      'and ex2.ex = lv.ex order by ex1.tt, lc, vc', [tuple.tdbeg, tuple.tdend],
-    function (err, exxr) {
+    q = db.select({ex1: 'ex'}, [{'ex1ex': 'ex'}, {'ex1tt': 'tt'}])
+      .select({ex2: 'ex'}, [{'ex2tt': 'tt'}])
+      .select('lv', ['lc', 'vc']);
+    q = q
+      .where(q.p('lv','lv').eq(q.p('ex1','lv')))
+      .where(q.p('lv','ex').eq(q.p('ex2','ex')))
+      .where(nodes.text('ex1.td between $0 and $1', [tuple.tdbeg, tuple.tdend]))
+      .order('ex1.tt', 'lv.lc', 'lv.vc');
+    
+    q.exec(function (err, exxr) {
       if (err) return res.send(err);
       res.render('lv1', { exxr: exxr });
     });
@@ -95,10 +100,10 @@ function lv1(req, res, next) {
 function lv2(req, res, next) {
   if (!req.params.ex.match(/^\d+$/)) return next();
 
-  db.sql('select lc, vc, lvextt, extt from exx ($1)', [req.params.ex],
+  db.sql('select lc, vc, lvextt, extt from exx($1)', [req.params.ex],
   function (err, exx) {
     exx = exx[0];
-    db.sql('select ex, lc, vc, lvextt, extt from trsx ($1)', [req.params.ex],
+    db.sql('select ex, lc, vc, lvextt, extt from trsx($1)', [req.params.ex],
     function (err, trxr) {
       res.render('lv2', {
         title: 'PanLinx: ' + exx.extt,
