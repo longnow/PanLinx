@@ -49,8 +49,9 @@ function setHeaders(req, res, next) {
 }
 
 function index(req, res, next) {
-  db.sql('select gp, tdbeg, tdend from tdg order by gp',
-  function (err, gpr) {
+  db.select('tdg', ['gp', 'tdbeg', 'tdend'])
+  .order('gp')
+  .exec(function (err, gpr) {
     if (err) return res.send(err);
     res.render('index', { gpr: gpr });
   });
@@ -59,8 +60,11 @@ function index(req, res, next) {
 function lv0(req, res, next) {
   if (!req.params.gp.match(/^\d+$/)) return next();
   
-  db.sql('select id, tdbeg, tdend from td where gp = $1 order by id', [req.params.gp],
-  function (err, subr) {
+  var q = db.select('td', ['id', 'tdbeg', 'tdend']);
+  q = q
+  .where(q.p('gp').eq(req.params.gp))
+  .order('id')
+  .exec(function (err, subr) {
     if (err) return res.send(err);
     res.render('lv0', { subr: subr });
   });
@@ -69,11 +73,15 @@ function lv0(req, res, next) {
 function lv1(req, res, next) {
   if (!req.params.id.match(/^\d+$/)) return next();
 
-  db.sql('select tdbeg, tdend from td where id = $1', [req.params.id],
-  function (err, tuple) {
+  var q = db.select('td', ['tdbeg', 'tdend']);
+  q.where(q.p('id').eq(req.params.id))
+  .exec(function (err, tuple) {
     if (err) return res.send(err);
 
     tuple = tuple[0];
+    
+    q = db.select({ex1: 'ex'}, [])
+      .table()
     db.sql('select ex1.ex ex1ex, lc, vc, ex2.tt ex2tt, ex1.tt ex1tt from ex as ex1, ex as ex2, lv ' +
       'where ex1.td between $1 and $2 and lv.lv = ex1.lv ' +
       'and ex2.ex = lv.ex order by ex1.tt, lc, vc', [tuple.tdbeg, tuple.tdend],
