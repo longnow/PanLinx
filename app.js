@@ -101,14 +101,10 @@ function lv1(req, res, next) {
 
 function lv2(req, res, next) {
   if (!req.params.ex.match(/^\d+$/)) return next();
-
-  console.log(q.compile());
   
   db.select(sqlFunction('exx',[req.params.ex]).as('exx'), ['lc','vc','lvextt','extt'])
-  //db.sql('select lc, vc, lvextt, extt from exx($1)', [req.params.ex],
   .exec(function (err, exx) {
     exx = exx[0];
-    //db.sql('select ex, lc, vc, lvextt, extt from trsx($1)', [req.params.ex],
     db.select(sqlFunction('trsx', [req.params.ex]).as('trsx'), ['ex','lc','vc','lvextt','extt'])
     .exec(function (err, trxr) {
       res.render('lv2', {
