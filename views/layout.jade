@@ -17,7 +17,10 @@ html
     
   body
     h4.c
-      a(href=base + '/') PanLinx
+      if startPage
+        | PanLinx
+      else
+        a(href=base + '/') PanLinx
 
     block content
     

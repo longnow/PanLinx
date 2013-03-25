@@ -30,6 +30,7 @@ app.configure('development', function(){
 
 app.locals({
   title: 'PanLinx',
+  startPage: false,
   base: config.base,
   robot: true,
   lcvcUid: function(obj) {
@@ -56,7 +57,7 @@ function index(req, res, next) {
   .order('gp')
   .exec(function (err, gpr) {
     if (err) return res.send(err);
-    res.render('index', { gpr: gpr });
+    res.render('index', { gpr: gpr, startPage: true });
   });
 }
 
@@ -83,12 +84,10 @@ function lv1(req, res, next) {
 
     tuple = tuple[0];
     
-    q = db.select({ex1: 'ex'}, [{'ex1ex': 'ex'}, {'ex1tt': 'tt'}])
-      .select({ex2: 'ex'}, [{'ex2tt': 'tt'}])
-      .select('lv', ['lc', 'vc']);
+    q = db.select({ex1: 'ex'}, [{'ex1ex': 'ex'}, {'ex1tt': 'tt'}]);
     q = q
-      .where(q.p('lv','lv').eq(q.p('ex1','lv')))
-      .where(q.p('lv','ex').eq(q.p('ex2','ex')))
+      .join('lv', { on: { lv: q.p('ex1','lv') }, fields: ['lc', 'vc'] })
+      .join({ex2: 'ex'}, { on: { ex: q.p('lv','ex') }, fields: [{'ex2tt': 'tt'}] })
       .where(text('ex1.td between $0 and $1', [tuple.tdbeg, tuple.tdend]))
       .order('ex1.tt', 'lv.lc', 'lv.vc');
     
