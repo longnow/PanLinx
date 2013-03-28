@@ -101,11 +101,26 @@ function lv1(req, res, next) {
 function lv2(req, res, next) {
   if (!req.params.ex.match(/^\d+$/)) return next();
   
-  db.select(sqlFunction('exx',[req.params.ex]).as('exx'), ['lc','vc','lvextt','extt'])
-  .exec(function (err, exx) {
+  var q = db.select('lv', ['lc','vc']);
+  q = q
+    .join({ex1: 'ex'}, { on: { lv: q.p('lv','lv') }, fields: [{extt: 'tt'}] })
+    .join({ex2: 'ex'}, { on: { ex: q.p('lv','ex') }, fields: [{lvextt: 'tt'}] })
+    .where(q.p('ex1','ex').eq(req.params.ex));
+  
+  q.exec(function (err, exx) {
     exx = exx[0];
-    db.select(sqlFunction('trsx', [req.params.ex]).as('trsx'), ['ex','lc','vc','lvextt','extt'])
-    .exec(function (err, trxr) {
+    
+    var q = db.select('lv', ['lc','vc']);
+    q = q.distinct(true)
+      .join({ex1: 'ex'}, { on: { lv: q.p('lv','lv') }, fields: ['ex', {extt: 'tt'}] })
+      .join({ex2: 'ex'}, { on: { ex: q.p('lv','ex') }, fields: [{lvextt: 'tt'}] })
+      .join({dn2: 'dn'}, { on: { ex: q.p('ex1','ex')} })
+      .join({dn1: 'dn'}, { on: { mn: q.p('dn2','mn')} })
+      .where(q.p('dn1','ex').eq(req.params.ex))
+      .where(q.p('dn2','ex').ne(req.params.ex))
+      .order('lv.lc', 'lv.vc', 'ex1.tt');
+        
+    q.exec(function (err, trxr) {
       res.render('lv2', {
         title: 'PanLinx: ' + exx.extt,
         exx: exx,
