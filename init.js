@@ -1,5 +1,5 @@
 var config = require('./config'),
-    anyDB = require('any-db'),
+    sqlite3 = require('sqlite3'),
     panlex = require('panlex'),
     async = require('async'),
     fs = require('fs');
@@ -13,7 +13,7 @@ var db;
 async.series([createDB, countEx, fetchTd, insertTd, insertTdg],
   function (err) {
     if (err) console.log(err);
-    db.end();
+    db.close();
     console.log('done');
   }
 );
@@ -21,18 +21,15 @@ async.series([createDB, countEx, fetchTd, insertTd, insertTdg],
 function createDB(cb) {
   if (fs.existsSync(config.db)) fs.unlinkSync(config.db);
   
-  anyDB.createConnection("sqlite3://" + config.db, function (err, conn) {
+  db = new sqlite3.Database(config.db);
+  
+  db.run('CREATE TABLE td (id integer primary key autoincrement, gp integer, beg text, end text)', 
+  function (err) {
     if (err) return cb(err);
-    db = conn;
-
-    db.query('CREATE TABLE td (id integer primary key autoincrement, gp integer, beg text, end text)', 
+    db.run('CREATE TABLE tdg (gp integer, beg integer, end integer)', 
     function (err) {
       if (err) return cb(err);
-      db.query('CREATE TABLE tdg (gp integer, beg integer, end integer)', 
-      function (err) {
-        if (err) return cb(err);
-        cb();
-      });
+      cb();
     });
   });
 }
@@ -58,28 +55,27 @@ function fetchTd(cb) {
 }
 
 function insertTd(cb) {
-  var tx = db.begin();
-  var stmt = db._db.prepare('INSERT INTO td (gp, beg, end) VALUES (?,?,?)');
+  var stmt = db.prepare('INSERT INTO td (gp, beg, end) VALUES (?,?,?)');
 
-  async.each(td, 
-    function (item, cb) {
-      stmt.run(item.gp, item.beg, item.end, cb);
-    },
-    function (err) {
-      if (err) return cb(err);
+  db.run('BEGIN', function (err) {
+    if (err) return cb(err);
 
-      stmt.finalize();
-      tx.commit(function (err) {
+    async.each(td, 
+      function (item, cb) {
+        stmt.run(item.gp, item.beg, item.end, cb);
+      },
+      function (err) {
         if (err) return cb(err);
-        cb();
+        stmt.finalize();
+        db.run('COMMIT', cb);
       });
-    });    
+  });
 }
 
 function insertTdg(cb) {
   var sql = 'INSERT INTO tdg (gp, beg, end) SELECT gp, min(beg), max(end) FROM td GROUP BY gp ORDER BY gp';
   
-  db.query(sql, function (err) {
+  db.run(sql, function (err) {
     if (err) return cb(err);
     cb();
   });
