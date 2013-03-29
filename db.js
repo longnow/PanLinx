@@ -2,7 +2,7 @@ var config = require('./config'),
     gesundheit = require('gesundheit'),
     BaseQuery = require('gesundheit/lib/queries/base');
 
-var db = module.exports = gesundheit.engine(config.db);
+var db = module.exports = gesundheit.engine("sqlite3://" + config.db);
 
 BaseQuery.prototype.exec = function(cb) {
   BaseQuery.prototype.execute.call(this, function (err, result) {

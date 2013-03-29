@@ -55,11 +55,9 @@ function setHeaders(req, res, next) {
 }
 
 function index(req, res, next) {
-  db.select('tdg', ['gp', 'tdbeg', 'tdend'])
-  .order('gp')
-  .exec(function (err, gpr) {
-    if (err) return res.send(err);
-    res.render('index', { gpr: gpr, startPage: true });
+  db.select('tdg').order('gp')
+  .exec(function (err, rows) {
+    res.render('index', { tdg: rows, startPage: true });    
   });
 }
 
@@ -67,12 +65,9 @@ function lv0(req, res, next) {
   if (!req.params.gp.match(/^\d+$/)) return next();
   req.params.gp = Number(req.params.gp);
   
-  var q = db.select('td', ['id', 'tdbeg', 'tdend']);
-  q = q
-  .where(q.p('gp').eq(req.params.gp))
-  .order('id')
+  db.select('td', ['id','beg','end']).where({gp: req.params.gp}).order('beg')
   .exec(function (err, subr) {
-    if (err) return res.send(err);
+    if (err) return next(err);
     res.render('lv0', { subr: subr });
   });
 }
@@ -81,17 +76,16 @@ function lv1(req, res, next) {
   if (!req.params.id.match(/^\d+$/)) return next();
   req.params.id = Number(req.params.id);
 
-  var q = db.select('td', ['tdbeg', 'tdend']);
-  q.where(q.p('id').eq(req.params.id))
+  db.select('td', ['beg', 'end']).where({ id: req.params.id })
   .exec(function (err, tuple) {
-    if (err) return res.send(err);
+    if (err) return next(err);
 
     tuple = tuple[0];
     
     panlex.queryAll('/ex', 
-      { include: "lv", sort: ["tt", "lv.lc", "lv.vc"], range: ["td", tuple.tdbeg, tuple.tdend] },
+      { include: "lv", sort: ["tt", "lv.lc", "lv.vc"], range: ["td", tuple.beg, tuple.end] },
     function (err, data) {
-      if (err) return res.send(err);
+      if (err) return next(err);
       res.render('lv1', { exxr: data.result });  
     });
   });
@@ -111,6 +105,7 @@ function lv2(req, res, next) {
     function (err, data) {
       if (err) return next(err);
       
+      console.log(data);
       res.render('lv2', {
         title: 'PanLinx: ' + exx.tt,
         exx: exx,
