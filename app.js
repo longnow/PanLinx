@@ -2,15 +2,17 @@ var express = require('express'),
     http = require('http'),
     path = require('path'),
     sprintf = require('sprintf').sprintf,
-    db = require('./db'),
-    config = require('./config'),
     gesundheit = require('gesundheit'),
     text = gesundheit.text,
     sqlFunction = gesundheit.sqlFunction;
 
+var config = require('./config'),
+    db = require('./db'),
+    panlex = require('panlex');
+
 var app = express();
 
-app.configure(function(){
+app.configure(function() {
   app.set('port', config.port || 3000);
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
@@ -24,7 +26,7 @@ app.configure(function(){
   app.use(express.static(path.join(__dirname, 'public')));
 });
 
-app.configure('development', function(){
+app.configure('development', function() {
   app.use(express.errorHandler());
 });
 
@@ -63,6 +65,7 @@ function index(req, res, next) {
 
 function lv0(req, res, next) {
   if (!req.params.gp.match(/^\d+$/)) return next();
+  req.params.gp = Number(req.params.gp);
   
   var q = db.select('td', ['id', 'tdbeg', 'tdend']);
   q = q
@@ -76,6 +79,7 @@ function lv0(req, res, next) {
 
 function lv1(req, res, next) {
   if (!req.params.id.match(/^\d+$/)) return next();
+  req.params.id = Number(req.params.id);
 
   var q = db.select('td', ['tdbeg', 'tdend']);
   q.where(q.p('id').eq(req.params.id))
@@ -84,47 +88,33 @@ function lv1(req, res, next) {
 
     tuple = tuple[0];
     
-    q = db.select({ex1: 'ex'}, [{'ex1ex': 'ex'}, {'ex1tt': 'tt'}]);
-    q = q
-      .join('lv', { on: { lv: q.p('ex1','lv') }, fields: ['lc', 'vc'] })
-      .join({ex2: 'ex'}, { on: { ex: q.p('lv','ex') }, fields: [{'ex2tt': 'tt'}] })
-      .where(text('ex1.td between $0 and $1', [tuple.tdbeg, tuple.tdend]))
-      .order('ex1.tt', 'lv.lc', 'lv.vc');
-    
-    q.exec(function (err, exxr) {
+    panlex.queryAll('/ex', 
+      { include: "lv", sort: ["tt", "lv.lc", "lv.vc"], range: ["td", tuple.tdbeg, tuple.tdend] },
+    function (err, data) {
       if (err) return res.send(err);
-      res.render('lv1', { exxr: exxr });
+      res.render('lv1', { exxr: data.result });  
     });
   });
 }
 
 function lv2(req, res, next) {
-  if (!req.params.ex.match(/^\d+$/)) return next();
+  if (!req.params.ex.match(/^\d+$/)) return next('invalid expression ID');
+  req.params.ex = Number(req.params.ex);
   
-  var q = db.select('lv', ['lc','vc']);
-  q = q
-    .join({ex1: 'ex'}, { on: { lv: q.p('lv','lv') }, fields: [{extt: 'tt'}] })
-    .join({ex2: 'ex'}, { on: { ex: q.p('lv','ex') }, fields: [{lvextt: 'tt'}] })
-    .where(q.p('ex1','ex').eq(req.params.ex));
-  
-  q.exec(function (err, exx) {
-    exx = exx[0];
+  panlex.query('/ex/' + req.params.ex, { include: 'lv' },
+  function (err, data) {
+    if (err) return next(err);
     
-    var q = db.select('lv', ['lc','vc']);
-    q = q.distinct(true)
-      .join({ex1: 'ex'}, { on: { lv: q.p('lv','lv') }, fields: ['ex', {extt: 'tt'}] })
-      .join({ex2: 'ex'}, { on: { ex: q.p('lv','ex') }, fields: [{lvextt: 'tt'}] })
-      .join({dn2: 'dn'}, { on: { ex: q.p('ex1','ex')} })
-      .join({dn1: 'dn'}, { on: { mn: q.p('dn2','mn')} })
-      .where(q.p('dn1','ex').eq(req.params.ex))
-      .where(q.p('dn2','ex').ne(req.params.ex))
-      .order('lv.lc', 'lv.vc', 'ex1.tt');
-        
-    q.exec(function (err, trxr) {
+    var exx = data.ex;
+    
+    panlex.queryAll('/ex', { tr: [req.params.ex], include: 'lv', sort: ['lv.lc','lv.vc','tt'] },
+    function (err, data) {
+      if (err) return next(err);
+      
       res.render('lv2', {
-        title: 'PanLinx: ' + exx.extt,
+        title: 'PanLinx: ' + exx.tt,
         exx: exx,
-        trxr: trxr,
+        trxr: data.result,
         robot: false
       });
     });

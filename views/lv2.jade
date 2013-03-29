@@ -3,15 +3,15 @@ extends layout
 block content
   table.box
     tr
-      td.r= exx.lvextt
-      td.lcvcl= lcvcUid(exx)
+      td.r= exx.lv.tt
+      td.lcvcl= lcvcUid(exx.lv)
     tr
-      td.cxl(colspan='2')= exx.extt
+      td.cxl(colspan='2')= exx.tt
 
   table
     for trx in trxr
       tr
-        td.r= trx.lvextt
-        td.lcvcl= lcvcUid(trx)
+        td.r= trx.lv.tt
+        td.lcvcl= lcvcUid(trx.lv)
         td
-          a(href=base + '/2/' + trx.ex)= trx.extt
+          a(href=base + '/2/' + trx.ex)= trx.tt
