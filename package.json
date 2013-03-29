@@ -8,7 +8,7 @@
   "dependencies": {
     "express": "~3.1.0",
     "jade": "~0.28.2",
-    "gesundheit": "~0.7.9",
+    "gesundheit": "~0.8.1",
     "sprintf": "~0.1.1",
     "panlex": "~0.0.2",
     "sqlite3": "~2.1.7",

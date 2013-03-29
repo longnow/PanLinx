@@ -105,7 +105,6 @@ function lv2(req, res, next) {
     function (err, data) {
       if (err) return next(err);
       
-      console.log(data);
       res.render('lv2', {
         title: 'PanLinx: ' + exx.tt,
         exx: exx,
