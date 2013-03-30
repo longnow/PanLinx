@@ -3,6 +3,7 @@ var express = require('express'),
     path = require('path'),
     sprintf = require('sprintf').sprintf,
     gesundheit = require('gesundheit'),
+    select = gesundheit.select,
     text = gesundheit.text,
     sqlFunction = gesundheit.sqlFunction;
 
@@ -55,8 +56,8 @@ function setHeaders(req, res, next) {
 }
 
 function index(req, res, next) {
-  db.select('tdg').order('gp')
-  .exec(function (err, rows) {
+  var q = select('tdg').order('gp');
+  db.all(q.compile()[0], function (err, rows) {
     res.render('index', { tdg: rows, startPage: true });    
   });
 }
@@ -65,8 +66,9 @@ function lv0(req, res, next) {
   if (!req.params.gp.match(/^\d+$/)) return next();
   req.params.gp = Number(req.params.gp);
   
-  db.select('td', ['id','beg','end']).where({gp: req.params.gp}).order('beg')
-  .exec(function (err, subr) {
+  var q = select('td', ['id','beg','end']).where({gp: req.params.gp}).order('beg'),
+      sql = q.compile();
+  db.all(sql[0], sql[1], function (err, subr) {
     if (err) return next(err);
     res.render('lv0', { subr: subr });
   });
@@ -76,8 +78,9 @@ function lv1(req, res, next) {
   if (!req.params.id.match(/^\d+$/)) return next();
   req.params.id = Number(req.params.id);
 
-  db.select('td', ['beg', 'end']).where({ id: req.params.id })
-  .exec(function (err, tuple) {
+  var q = select('td', ['beg', 'end']).where({ id: req.params.id }),
+      sql = q.compile();
+  db.all(sql[0], sql[1], function (err, tuple) {
     if (err) return next(err);
 
     tuple = tuple[0];

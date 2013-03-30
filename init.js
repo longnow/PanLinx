@@ -1,5 +1,4 @@
 var config = require('./config'),
-    sqlite3 = require('sqlite3'),
     panlex = require('panlex'),
     async = require('async'),
     fs = require('fs');
@@ -8,9 +7,11 @@ var exCount,
     want, 
     td = [];
 
-var db;
+if (fs.existsSync(config.db)) fs.unlinkSync(config.db);
 
-async.series([createDB, countEx, fetchTd, insertTd, insertTdg],
+var db = require('./db');
+
+async.series([initDB, countEx, fetchTd, insertTd, insertTdg],
   function (err) {
     if (err) console.log(err);
     db.close();
@@ -18,19 +19,13 @@ async.series([createDB, countEx, fetchTd, insertTd, insertTdg],
   }
 );
 
-function createDB(cb) {
-  if (fs.existsSync(config.db)) fs.unlinkSync(config.db);
-  
-  db = new sqlite3.Database(config.db);
-  
-  db.run('CREATE TABLE td (id integer primary key autoincrement, gp integer, beg text, end text)', 
+function initDB(cb) {
+  db.exec(
+    'CREATE TABLE td (id integer primary key autoincrement, gp integer, beg text, end text);' + 
+    'CREATE TABLE tdg (gp integer, beg integer, end integer)', 
   function (err) {
     if (err) return cb(err);
-    db.run('CREATE TABLE tdg (gp integer, beg integer, end integer)', 
-    function (err) {
-      if (err) return cb(err);
-      cb();
-    });
+    cb();
   });
 }
 
@@ -55,10 +50,10 @@ function fetchTd(cb) {
 }
 
 function insertTd(cb) {
-  var stmt = db.prepare('INSERT INTO td (gp, beg, end) VALUES (?,?,?)');
-
   db.run('BEGIN', function (err) {
     if (err) return cb(err);
+
+    var stmt = db.prepare('INSERT INTO td (gp, beg, end) VALUES (?,?,?)');
 
     async.each(td, 
       function (item, cb) {
