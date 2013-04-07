@@ -5,7 +5,8 @@ var config = require('./config'),
 
 var exCount, 
     want, 
-    td = [];
+    td = [],
+    tdg = [];
 
 if (fs.existsSync(config.db)) fs.unlinkSync(config.db);
 
@@ -38,12 +39,14 @@ function countEx(cb) {
   });
 }
 
-function fetchTd(cb) {  
+function fetchTd(cb) {
+  var id = 1;
+  
   panlex.query('/ex/index', { step: want }, function (err, data) {
     if (err) return cb(err);
     
     data.index.forEach(function (item, i) {
-      td.push({ gp: Math.floor((i+1)/want), beg: truncate(item[0].td), end: truncate(item[1].td) });
+      td.push({ id: id++, gp: Math.floor((i+1)/want), beg: truncate(item[0].td), end: truncate(item[1].td) });
     });
     cb();
   });
@@ -56,7 +59,7 @@ function insertTd(cb) {
     var stmt = db.prepare('INSERT INTO td (gp, beg, end) VALUES (?,?,?)');
 
     async.each(td, 
-      function (item, cb) {
+      function (item, cb) {        
         stmt.run(item.gp, item.beg, item.end, cb);
       },
       function (err) {
@@ -68,11 +71,29 @@ function insertTd(cb) {
 }
 
 function insertTdg(cb) {
-  var sql = 'INSERT INTO tdg (gp, beg, end) SELECT gp, min(beg), max(end) FROM td GROUP BY gp ORDER BY gp';
+  td.forEach(function (item) {
+    if (!tdg[item.gp]) 
+      tdg[item.gp] = { gp: item.gp, beg: item.beg, end: item.end, endId: item.id };
+    else if (item.id > tdg[item.gp].endId) {
+      tdg[item.gp].endId = item.id;
+      tdg[item.gp].end = item.end;
+    }
+  });
   
-  db.run(sql, function (err) {
+  db.run('BEGIN', function (err) {
     if (err) return cb(err);
-    cb();
+
+    var stmt = db.prepare('INSERT INTO tdg (gp, beg, end) VALUES (?,?,?)');
+
+    async.each(tdg, 
+      function (item, cb) {
+        stmt.run(item.gp, item.beg, item.end, cb);
+      },
+      function (err) {
+        if (err) return cb(err);
+        stmt.finalize();
+        db.run('COMMIT', cb);
+      });
   });
 }
 
