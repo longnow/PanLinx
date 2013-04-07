@@ -5,8 +5,7 @@ var config = require('./config'),
 
 var exCount, 
     want, 
-    td = [],
-    tdg = [];
+    td = [];
 
 if (fs.existsSync(config.db)) fs.unlinkSync(config.db);
 
@@ -71,6 +70,8 @@ function insertTd(cb) {
 }
 
 function insertTdg(cb) {
+  var tdg = [];
+  
   td.forEach(function (item) {
     if (!tdg[item.gp]) 
       tdg[item.gp] = { gp: item.gp, beg: item.beg, end: item.end, endId: item.id };
