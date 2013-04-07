@@ -66,7 +66,7 @@ function lv0(req, res, next) {
   if (!req.params.gp.match(/^\d+$/)) return next();
   req.params.gp = Number(req.params.gp);
   
-  var q = select('td', ['id','beg','end']).where({gp: req.params.gp}).order('beg'),
+  var q = select('td', ['id','beg','end']).where({gp: req.params.gp}).order('id'),
       sql = q.compile();
   db.all(sql[0], sql[1], function (err, subr) {
     if (err) return next(err);
