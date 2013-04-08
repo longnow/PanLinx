@@ -1,7 +1,8 @@
 var express = require('express'),
     http = require('http'),
     path = require('path'),
-    sprintf = require('sprintf').sprintf;
+    sprintf = require('sprintf').sprintf,
+    ucs2 = require('punycode').ucs2;
 
 var config = require('./config'),
     panlex = require('panlex');
@@ -9,7 +10,11 @@ var config = require('./config'),
 var index = require('./index'),
     td = index.td,
     gp = index.gp,
-    tdg = index.tdg;
+    tdg = [];
+
+gp.forEach(function (item, i) {
+  tdg[i] = { beg: truncate(td[item[0]].beg), end: truncate(td[item[1]].end) };
+});
 
 var app = express();
 
@@ -63,7 +68,17 @@ function gpRoute(req, res, next) {
   if (!req.params.gp.match(/^\d+$/)) return next();
   var num = Number(req.params.gp);
   
-  res.render('gp', { gp: num, subr: td.slice(gp[num][0], gp[num][1] + 1) });
+  var subr = [];
+  var first = gp[num][0], last = gp[num][1];
+  for (var i = first; i <= last; i++) {
+    subr.push({
+      id: td[i].id,
+      beg: truncate(td[i].beg),
+      end: truncate(td[i].end)
+    });
+  }
+  
+  res.render('gp', { gp: num, subr: subr });
 }
 
 function subgpRoute(req, res, next) {
@@ -101,4 +116,8 @@ function exRoute(req, res, next) {
       });
     });
   });
+}
+
+function truncate(str) {
+  return ucs2.encode(ucs2.decode(str).slice(0, 15));
 }
