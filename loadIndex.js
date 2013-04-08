@@ -56,7 +56,7 @@ function writeJson() {
     tdg[i] = { beg: td[item[0]].beg, end: td[item[1]].end };
   });  
   
-  fs.writeFileSync('index.json', JSON.stringify({ td: td, gp: gp, tdg: tdg }), 'utf8');  
+  fs.writeFileSync(__dirname + '/index.json', JSON.stringify({ td: td, gp: gp, tdg: tdg }), 'utf8');  
 }
 
 function truncate(str) {
