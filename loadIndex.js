@@ -1,7 +1,8 @@
 var config = require('./config'),
     panlex = require('panlex'),
     async = require('async'),
-    fs = require('fs');
+    fs = require('fs'),
+    ucs2 = require('punycode').ucs2;
 
 var exCount, 
     want, 
@@ -29,8 +30,7 @@ function fetchTd(cb) {
     if (err) return cb(err);
     
     data.index.forEach(function (item, i) {
-      //td[i] = { id: i, gp: Math.floor((i+1)/want), beg: truncate(item[0].td), end: truncate(item[1].td) };
-      td[i] = { id: i, gp: Math.floor((i+1)/want), beg: item[0].td, end: item[1].td };
+      td[i] = { id: i, gp: Math.floor((i+1)/want), beg: truncate(item[0].td), end: truncate(item[1].td) };
     });
     cb();
   });
@@ -60,5 +60,5 @@ function writeJson() {
 }
 
 function truncate(str) {
-  return str.substr(0, 15);
+  return ucs2.encode(ucs2.decode(str).slice(0, 15));
 }

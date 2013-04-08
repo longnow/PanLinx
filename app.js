@@ -71,7 +71,6 @@ function subgpRoute(req, res, next) {
   var id = Number(req.params.id);
   var tuple = td[id];
   
-  console.log(tuple);
   panlex.queryAll('/ex', 
     { include: "lv", sort: ["tt", "lv.lc", "lv.vc"], range: ["td", tuple.beg, tuple.end] },
   function (err, data) {
