@@ -2,9 +2,9 @@ extends layout
 
 block content
   table
-    for item in tdg
+    for item, i in tdg
       tr
         td.r= item.beg
         td.xl
-          a(href=base + '/gp/' + item.gp) …
+          a(href=base + '/gp/' + i) …
         td= item.end

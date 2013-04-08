@@ -1,15 +1,16 @@
 var express = require('express'),
     http = require('http'),
     path = require('path'),
-    sprintf = require('sprintf').sprintf,
-    gesundheit = require('gesundheit'),
-    select = gesundheit.select,
-    text = gesundheit.text,
-    sqlFunction = gesundheit.sqlFunction;
+    sprintf = require('sprintf').sprintf;
 
 var config = require('./config'),
-    db = require('./db'),
     panlex = require('panlex');
+
+var td = require('./td'),
+    gp = [],
+    tdg = [];
+
+loadTd();
 
 var app = express();
 
@@ -41,64 +42,68 @@ app.locals({
   }
 });
 
-app.get('/', index);
-app.get('/gp/:gp', gp);
-app.get('/gp/id/:id', gpId);
-app.get('/ex/:ex', ex);
+app.get('/', indexRoute);
+app.get('/gp/:gp', gpRoute);
+app.get('/gp/:gp/sub/:id', subgpRoute);
+app.get('/ex/:ex', exRoute);
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });
+
+function loadTd() {
+  var lastGp = 0;
+  gp[0] = { first: 0 };
+    
+  td.forEach(function (item, i) {
+    if (item.gp !== lastGp) {
+      gp[lastGp].last = i - 1;
+      lastGp++;
+      gp[lastGp] = { first: i };
+    }    
+  });
+  
+  gp[lastGp].last = td.length - 1;
+  
+  gp.forEach(function (item, i) {
+    tdg[i] = { beg: td[item.first].beg, end: td[item.last].end };
+  });
+}
 
 function setHeaders(req, res, next) {
   res.set('Expires', 0);
   next();
 }
 
-function index(req, res, next) {
-  var q = select('tdg').order('gp');
-  db.all(q.compile()[0], function (err, rows) {
-    res.render('index', { tdg: rows, startPage: true });    
-  });
+function indexRoute(req, res, next) {
+  res.render('index', { tdg: tdg, startPage: true });    
 }
 
-function gp(req, res, next) {
+function gpRoute(req, res, next) {
   if (!req.params.gp.match(/^\d+$/)) return next();
-  req.params.gp = Number(req.params.gp);
+  var num = Number(req.params.gp);
   
-  var q = select('td', ['id','beg','end']).where({gp: req.params.gp}).order('id'),
-      sql = q.compile();
-  db.all(sql[0], sql[1], function (err, subr) {
-    if (err) return next(err);
-    res.render('gp', { subr: subr });
-  });
+  res.render('gp', { gp: num, subr: td.slice(gp[num].first, gp[num].last + 1) });
 }
 
-function gpId(req, res, next) {
+function subgpRoute(req, res, next) {
   if (!req.params.id.match(/^\d+$/)) return next();
-  req.params.id = Number(req.params.id);
-
-  var q = select('td', ['beg', 'end']).where({ id: req.params.id }),
-      sql = q.compile();
-  db.all(sql[0], sql[1], function (err, tuple) {
-    if (err) return next(err);
-
-    tuple = tuple[0];
+  var id = Number(req.params.id);
+  var tuple = td[id];
     
-    panlex.queryAll('/ex', 
-      { include: "lv", sort: ["tt", "lv.lc", "lv.vc"], range: ["td", tuple.beg, tuple.end] },
-    function (err, data) {
-      if (err) return next(err);
-      res.render('gp_id', { exxr: data.result });  
-    });
+  panlex.queryAll('/ex', 
+    { include: "lv", sort: ["tt", "lv.lc", "lv.vc"], range: ["td", tuple.beg, tuple.end] },
+  function (err, data) {
+    if (err) return next(err);
+    res.render('subgp', { exxr: data.result });  
   });
 }
 
-function ex(req, res, next) {
+function exRoute(req, res, next) {
   if (!req.params.ex.match(/^\d+$/)) return next('invalid expression ID');
-  req.params.ex = Number(req.params.ex);
+  var ex = Number(req.params.ex);
   
-  panlex.query('/ex/' + req.params.ex, { include: 'lv' },
+  panlex.query('/ex/' + ex, { include: 'lv' },
   function (err, data) {
     if (err) return next(err);
     
