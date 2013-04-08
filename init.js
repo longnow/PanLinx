@@ -47,6 +47,7 @@ function fetchTd(cb) {
     data.index.forEach(function (item, i) {
       td.push({ id: id++, gp: Math.floor((i+1)/want), beg: truncate(item[0].td), end: truncate(item[1].td) });
     });
+    fs.writeFileSync('data.json', JSON.stringify(td, null, 4), 'utf8');
     cb();
   });
 }

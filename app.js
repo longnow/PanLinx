@@ -42,9 +42,9 @@ app.locals({
 });
 
 app.get('/', index);
-app.get('/0/:gp', lv0);
-app.get('/1/:id', lv1);
-app.get('/2/:ex', lv2);
+app.get('/gp/:gp', gp);
+app.get('/gp/id/:id', gpId);
+app.get('/ex/:ex', ex);
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
@@ -62,7 +62,7 @@ function index(req, res, next) {
   });
 }
 
-function lv0(req, res, next) {
+function gp(req, res, next) {
   if (!req.params.gp.match(/^\d+$/)) return next();
   req.params.gp = Number(req.params.gp);
   
@@ -70,11 +70,11 @@ function lv0(req, res, next) {
       sql = q.compile();
   db.all(sql[0], sql[1], function (err, subr) {
     if (err) return next(err);
-    res.render('lv0', { subr: subr });
+    res.render('gp', { subr: subr });
   });
 }
 
-function lv1(req, res, next) {
+function gpId(req, res, next) {
   if (!req.params.id.match(/^\d+$/)) return next();
   req.params.id = Number(req.params.id);
 
@@ -89,12 +89,12 @@ function lv1(req, res, next) {
       { include: "lv", sort: ["tt", "lv.lc", "lv.vc"], range: ["td", tuple.beg, tuple.end] },
     function (err, data) {
       if (err) return next(err);
-      res.render('lv1', { exxr: data.result });  
+      res.render('gp_id', { exxr: data.result });  
     });
   });
 }
 
-function lv2(req, res, next) {
+function ex(req, res, next) {
   if (!req.params.ex.match(/^\d+$/)) return next('invalid expression ID');
   req.params.ex = Number(req.params.ex);
   
@@ -108,7 +108,7 @@ function lv2(req, res, next) {
     function (err, data) {
       if (err) return next(err);
       
-      res.render('lv2', {
+      res.render('ex', {
         title: 'PanLinx: ' + exx.tt,
         exx: exx,
         trxr: data.result,
