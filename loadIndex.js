@@ -10,7 +10,7 @@ var exCount,
 async.series([countEx, fetchTd],
   function (err) {
     if (err) console.log(err);
-    fs.writeFileSync('td.json', JSON.stringify(td), 'utf8');
+    writeJson();
     console.log('done');
   }
 );
@@ -29,10 +29,34 @@ function fetchTd(cb) {
     if (err) return cb(err);
     
     data.index.forEach(function (item, i) {
-      td[i] = { id: i, gp: Math.floor((i+1)/want), beg: truncate(item[0].td), end: truncate(item[1].td) };
+      //td[i] = { id: i, gp: Math.floor((i+1)/want), beg: truncate(item[0].td), end: truncate(item[1].td) };
+      td[i] = { id: i, gp: Math.floor((i+1)/want), beg: item[0].td, end: item[1].td };
     });
     cb();
   });
+}
+
+function writeJson() {
+  var gp = [], tdg = [];
+  
+  var lastGp = 0;
+  gp[0] = [0, 0];
+    
+  td.forEach(function (item, i) {
+    if (item.gp !== lastGp) {
+      gp[lastGp][1] = i - 1;
+      lastGp++;
+      gp[lastGp] = [i, 0];
+    }    
+  });
+  
+  gp[lastGp][1] = td.length - 1;
+  
+  gp.forEach(function (item, i) {
+    tdg[i] = { beg: td[item[0]].beg, end: td[item[1]].end };
+  });  
+  
+  fs.writeFileSync('index.json', JSON.stringify({ td: td, gp: gp, tdg: tdg }), 'utf8');  
 }
 
 function truncate(str) {

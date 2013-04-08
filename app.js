@@ -6,11 +6,10 @@ var express = require('express'),
 var config = require('./config'),
     panlex = require('panlex');
 
-var td = require('./td'),
-    gp = [],
-    tdg = [];
-
-loadTd();
+var index = require('./index'),
+    td = index.td,
+    gp = index.gp,
+    tdg = index.tdg;
 
 var app = express();
 
@@ -51,25 +50,6 @@ http.createServer(app).listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });
 
-function loadTd() {
-  var lastGp = 0;
-  gp[0] = { first: 0 };
-    
-  td.forEach(function (item, i) {
-    if (item.gp !== lastGp) {
-      gp[lastGp].last = i - 1;
-      lastGp++;
-      gp[lastGp] = { first: i };
-    }    
-  });
-  
-  gp[lastGp].last = td.length - 1;
-  
-  gp.forEach(function (item, i) {
-    tdg[i] = { beg: td[item.first].beg, end: td[item.last].end };
-  });
-}
-
 function setHeaders(req, res, next) {
   res.set('Expires', 0);
   next();
@@ -83,14 +63,15 @@ function gpRoute(req, res, next) {
   if (!req.params.gp.match(/^\d+$/)) return next();
   var num = Number(req.params.gp);
   
-  res.render('gp', { gp: num, subr: td.slice(gp[num].first, gp[num].last + 1) });
+  res.render('gp', { gp: num, subr: td.slice(gp[num][0], gp[num][1] + 1) });
 }
 
 function subgpRoute(req, res, next) {
   if (!req.params.id.match(/^\d+$/)) return next();
   var id = Number(req.params.id);
   var tuple = td[id];
-    
+  
+  console.log(tuple);
   panlex.queryAll('/ex', 
     { include: "lv", sort: ["tt", "lv.lc", "lv.vc"], range: ["td", tuple.beg, tuple.end] },
   function (err, data) {
