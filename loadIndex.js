@@ -9,9 +9,11 @@ var exCount,
 
 async.series([countEx, fetchTd],
   function (err) {
-    if (err) console.log(err);
-    writeJson();
-    console.log('done');
+    if (err) console.error(err);
+    else {
+      writeJson();
+      console.log('done');      
+    }
   }
 );
 
