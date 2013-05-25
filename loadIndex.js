@@ -18,7 +18,7 @@ async.series([countEx, fetchTd],
 );
 
 function countEx(cb) {
-  panlex.query('/ex', { count: true }, function (err, data) {
+  panlex.query('/ex/count', {}, function (err, data) {
     if (err) return cb(err);
     exCount = data.count;
     want = Math.ceil(Math.pow(exCount, 1/3));
