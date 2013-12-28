@@ -38,7 +38,7 @@ function fetchTd(cb) {
 }
 
 function writeJson() {
-  var gp = [], tdg = [];
+  var gp = [];
   
   var lastGp = 0;
   gp[0] = [0, 0];
