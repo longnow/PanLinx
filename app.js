@@ -1,16 +1,16 @@
-var express = require('express'),
-    http = require('http'),
-    path = require('path'),
-    sprintf = require('sprintf').sprintf,
-    ucs2 = require('punycode').ucs2;
+var express = require('express');
+var http = require('http');
+var path = require('path');
+var sprintf = require('sprintf').sprintf;
+var ucs2 = require('punycode').ucs2;
 
-var config = require('./config'),
-    panlex = require('panlex');
+var config = require('./config');
+var panlex = require('./panlex');
 
-var index = require('./index'),
-    td = index.td,
-    gp = index.gp,
-    tdg = [];
+var index = require('./index');
+var td = index.td;
+var gp = index.gp;
+var tdg = [];
 
 gp.forEach(function (item, i) {
   tdg[i] = { beg: truncate(td[item[0]].beg), end: truncate(td[item[1]].end) };

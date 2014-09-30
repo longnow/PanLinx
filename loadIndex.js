@@ -1,11 +1,11 @@
-var config = require('./config'),
-    panlex = require('panlex'),
-    async = require('async'),
-    fs = require('fs');
+var config = require('./config');
+var panlex = require('./panlex');
+var async = require('async');
+var fs = require('fs');
 
-var exCount, 
-    want, 
-    td = [];
+var exCount;
+var want;
+var td = [];
 
 async.series([countEx, fetchTd],
   function (err) {
