@@ -1,4 +1,3 @@
-var config = require('./config');
 var panlex = require('./panlex');
 var async = require('async');
 var fs = require('fs');

@@ -104,7 +104,7 @@ function exRoute(req, res, next) {
     
     var exx = data.ex;
     
-    panlex.queryAll('/ex', { tr: [ex], include: 'lv', sort: ['lv.lc','lv.vc','tt'] },
+    panlex.queryAll('/ex', { trex: [ex], include: 'lv', sort: ['lv.lc','lv.vc','tt'] },
     function (err, data) {
       if (err) return next(err);
       
