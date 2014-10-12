@@ -1,5 +1,6 @@
 var express = require('express');
-var http = require('http');
+var errorHandler = require('errorhandler');
+var logger = require('morgan');
 var path = require('path');
 var sprintf = require('sprintf').sprintf;
 var ucs2 = require('punycode').ucs2;
@@ -18,40 +19,31 @@ gp.forEach(function (item, i) {
 
 var app = express();
 
-app.configure(function() {
-  app.set('port', config.port || 3000);
-  app.set('views', __dirname + '/views');
-  app.set('view engine', 'jade');
-  
-  app.use(express.favicon());
-  app.use(express.logger('dev'));
-  app.use(express.bodyParser());
-  app.use(express.methodOverride());
-  app.use(setHeaders);
-  app.use(app.router);
-  app.use(express.static(path.join(__dirname, 'public')));
-});
+app.set('port', config.port || 3000);
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'jade');
 
-app.configure('development', function() {
-  app.use(express.errorHandler());
-});
+if (app.get('env') === 'development') app.use(logger('dev'));
 
-app.locals({
-  title: 'PanLinx',
-  startPage: false,
-  base: config.base,
-  robot: true,
-  lcvcUid: function(obj) {
-    return sprintf('%s-%03d', obj.lc, obj.vc);
-  }
-});
+app.use(setHeaders);
+app.use(express.static(path.join(__dirname, 'public')));
+
+if (app.get('env') === 'development') app.use(errorHandler());
+
+app.locals.title = 'PanLinx';
+app.locals.startPage = false;
+app.locals.base = config.base;
+app.locals.robot = true;
+app.locals.lcvcUid = function(obj) {
+  return sprintf('%s-%03d', obj.lc, obj.vc);
+};
 
 app.get('/', indexRoute);
 app.get('/gp/:gp', gpRoute);
 app.get('/gp/:gp/sub/:id', subgpRoute);
 app.get('/ex/:ex', exRoute);
 
-http.createServer(app).listen(app.get('port'), function(){
+app.listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });
 
