@@ -90,13 +90,13 @@ function exRoute(req, res, next) {
   if (!req.params.ex.match(/^\d+$/)) return next('invalid expression ID');
   var ex = Number(req.params.ex);
   
-  panlex.query('/ex/' + ex, { include: 'lv' },
+  panlex.query('/ex/' + ex, { include: 'uid' },
   function (err, data) {
     if (err) return next(err);
     
     var exx = data.ex;
     
-    panlex.queryAll('/ex', { trex: [ex], include: 'lv', sort: ['lv.lc','lv.vc','tt'] },
+    panlex.queryAll('/ex', { trex: [ex], include: 'uid', sort: ['uid','tt'] },
     function (err, data) {
       if (err) return next(err);
       

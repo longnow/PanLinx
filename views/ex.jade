@@ -4,7 +4,7 @@ block content
   table.box
     tr
       td.r= exx.lv.tt
-      td.lcvcl= lcvcUid(exx.lv)
+      td.lcvcl= exx.uid
     tr
       td.cxl(colspan='2')= exx.tt
 
@@ -12,6 +12,6 @@ block content
     for trx in trxr
       tr
         td.r= trx.lv.tt
-        td.lcvcl= lcvcUid(trx.lv)
+        td.lcvcl= trx.uid
         td
           a(href=base + '/ex/' + trx.ex)= trx.tt
