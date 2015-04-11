@@ -4,7 +4,7 @@ block content
   table
     for exx in exxr
       tr
-        td.r= exx.lv.tt
-        td.lcvcl= lcvcUid(exx.lv)
+        td.r= uidTt[exx.uid]
+        td.lcvcl= exx.uid
         td
           a(href=base + '/ex/' + exx.ex)= exx.tt
