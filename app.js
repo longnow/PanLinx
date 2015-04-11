@@ -11,6 +11,7 @@ var panlex = require('./panlex');
 var index = require('./index');
 var td = index.td;
 var gp = index.gp;
+var uidTt = index.uidTt;
 var tdg = [];
 
 gp.forEach(function (item, i) {
@@ -34,9 +35,7 @@ app.locals.title = 'PanLinx';
 app.locals.startPage = false;
 app.locals.base = config.base;
 app.locals.robot = true;
-app.locals.lcvcUid = function(obj) {
-  return sprintf('%s-%03d', obj.lc, obj.vc);
-};
+app.locals.uidTt = uidTt;
 
 app.get('/', indexRoute);
 app.get('/gp/:gp', gpRoute);
@@ -79,7 +78,7 @@ function subgpRoute(req, res, next) {
   var tuple = td[id];
   
   panlex.queryAll('/ex', 
-    { include: "lv", sort: ["td", "tt", "lv.lc", "lv.vc"], range: ["td", tuple.beg, tuple.end] },
+    { include: 'uid', sort: ['td', 'tt', 'uid'], range: ['td', tuple.beg, tuple.end] },
   function (err, data) {
     if (err) return next(err);
     res.render('subgp', { exxr: data.result });  

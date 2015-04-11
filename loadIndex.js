@@ -5,8 +5,9 @@ var fs = require('fs');
 var exCount;
 var want;
 var td = [];
+var uidTt = {};
 
-async.series([countEx, fetchTd],
+async.series([countEx, fetchTd, fetchLv],
   function (err) {
     if (err) console.error(err);
     else {
@@ -36,6 +37,18 @@ function fetchTd(cb) {
   });
 }
 
+function fetchLv(cb) {
+  panlex.queryAll('/lv', function (err, data) {
+    if (err) return cb(err);
+
+    data.result.forEach(function (lv) { 
+      uidTt[lv.uid] = lv.tt;
+    });
+
+    cb();
+  });
+}
+
 function writeJson() {
   var gp = [];
   
@@ -52,5 +65,5 @@ function writeJson() {
   
   gp[lastGp][1] = td.length - 1;
     
-  fs.writeFileSync(__dirname + '/index.json', JSON.stringify({ td: td, gp: gp }), 'utf8');  
+  fs.writeFileSync(__dirname + '/index.json', JSON.stringify({ td: td, gp: gp, uidTt: uidTt }), 'utf8');  
 }

@@ -3,7 +3,7 @@ extends layout
 block content
   table.box
     tr
-      td.r= exx.lv.tt
+      td.r= uidTt[exx.uid]
       td.lcvcl= exx.uid
     tr
       td.cxl(colspan='2')= exx.tt
@@ -11,7 +11,7 @@ block content
   table
     for trx in trxr
       tr
-        td.r= trx.lv.tt
+        td.r= uidTt[trx.uid]
         td.lcvcl= trx.uid
         td
           a(href=base + '/ex/' + trx.ex)= trx.tt
