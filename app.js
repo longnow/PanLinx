@@ -20,7 +20,7 @@ gp.forEach(function (item, i) {
 
 var app = express();
 
-app.set('port', config.port || 3000);
+app.set('port', process.env.PORT || config.port || 3000);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
